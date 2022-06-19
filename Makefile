@@ -24,6 +24,7 @@ include ../../checks.mk
 
 # Using the same name for this service as the `fswebcam`-based version so it
 # can be used as a direct drop-in replacement for that servcie on Jetsons.
+DOCKER_HUB_ID ?= "ibmosquito"
 SERVICE_NAME:="restcam"
 SERVICE_VERSION:="1.0.0"
 
@@ -37,7 +38,7 @@ ARCH:=$(shell ../../helper -a)
 # see how they are used.
 
 build: check-dockerhubid
-	docker build -t $(DOCKERHUB_ID)/$(SERVICE_NAME)_$(ARCH):$(SERVICE_VERSION) -f ./Dockerfile.$(ARCH) .
+	docker build -t $(DOCKER_HUB_ID)/$(SERVICE_NAME)_$(ARCH):$(SERVICE_VERSION) -f ./Dockerfile.$(ARCH) .
 
 run: check-dockerhubid
 	-docker network create cam-net 2>/dev/null || :
@@ -52,7 +53,7 @@ run: check-dockerhubid
            -e CAM_RES="$(CAM_RES)" \
            --name ${SERVICE_NAME} \
            --network cam-net --network-alias $(SERVICE_NAME) \
-           $(DOCKERHUB_ID)/$(SERVICE_NAME)_$(ARCH):$(SERVICE_VERSION)
+           $(DOCKER_HUB_ID)/$(SERVICE_NAME)_$(ARCH):$(SERVICE_VERSION)
 
 # This target mounts this code dir in the container, useful for development.
 dev: check-dockerhubid build
@@ -72,7 +73,7 @@ dev: check-dockerhubid build
            -e CAM_RES="$(CAM_RES)" \
            --name ${SERVICE_NAME} \
            --network cam-net --network-alias $(SERVICE_NAME) \
-           $(DOCKERHUB_ID)/$(SERVICE_NAME)_$(ARCH):$(SERVICE_VERSION) /bin/bash
+           $(DOCKER_HUB_ID)/$(SERVICE_NAME)_$(ARCH):$(SERVICE_VERSION) /bin/bash
 
 # =============================================================================
 # To perform a quick self-test of the "restcam" service:
@@ -109,7 +110,7 @@ stop: check-dockerhubid
 
 clean: check-dockerhubid
 	-docker rm -f ${SERVICE_NAME} 2>/dev/null || :
-	-docker rmi $(DOCKERHUB_ID)/$(SERVICE_NAME)_$(ARCH):$(SERVICE_VERSION) 2>/dev/null || :
+	-docker rmi $(DOCKER_HUB_ID)/$(SERVICE_NAME)_$(ARCH):$(SERVICE_VERSION) 2>/dev/null || :
 	-docker network rm cam-net 2>/dev/null || :
 
 .PHONY: build run dev test stop clean
